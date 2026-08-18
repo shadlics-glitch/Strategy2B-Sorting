@@ -4,26 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestão Logística</title>
-    <!-- Importando Tailwind CSS para estilização rápida -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Importando Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans min-h-screen">
 
-    <!-- TELA DE LOGIN / CADASTRO -->
     <div id="auth-screen" class="flex items-center justify-center min-h-screen bg-gray-900">
         <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
             <h2 class="text-2xl font-bold text-center mb-6 text-gray-800" id="auth-title">Acesso ao Sistema</h2>
             
             <form id="auth-form" class="space-y-4">
-                <!-- Campo de Nome (Apenas Cadastro) -->
                 <div id="name-field" class="hidden">
                     <label class="block text-sm font-medium text-gray-700">Nome Completo</label>
                     <input type="text" id="user-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" placeholder="Digite seu nome">
                 </div>
                 
-                <!-- Campo de Cargo (Apenas Cadastro) -->
                 <div id="role-field" class="hidden">
                     <label class="block text-sm font-medium text-gray-700">Cargo</label>
                     <select id="user-role" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2">
@@ -53,9 +48,7 @@
         </div>
     </div>
 
-    <!-- TELA PRINCIPAL (SISTEMA) -->
     <div id="app-screen" class="hidden min-h-screen flex flex-col">
-        <!-- Navegação Topo -->
         <nav class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center">
             <div class="flex items-center space-x-4">
                 <h1 class="text-xl font-bold">Logística Web</h1>
@@ -67,16 +60,13 @@
             </div>
         </nav>
 
-        <!-- Menu Principal -->
         <div class="bg-white shadow-sm flex space-x-4 p-4">
             <button onclick="mostrarAba('estoque')" class="text-blue-600 font-semibold hover:underline">Estoque</button>
             <button onclick="mostrarAba('romaneios')" class="text-blue-600 font-semibold hover:underline">Romaneios e Frota</button>
         </div>
 
-        <!-- Conteúdo das Abas -->
         <main class="flex-grow p-6">
             
-            <!-- ABA ESTOQUE -->
             <div id="aba-estoque" class="aba-conteudo">
                 <h2 class="text-2xl font-bold mb-4">Controle de Estoque</h2>
                 <div class="bg-white p-4 rounded shadow">
@@ -91,19 +81,16 @@
                             </tr>
                         </thead>
                         <tbody id="tabela-estoque">
-                            <!-- Preenchido via JavaScript -->
                             <tr><td colspan="4" class="text-center py-4 text-gray-500">Clique em "Atualizar Lista" para carregar.</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- ABA ROMANEIOS -->
             <div id="aba-romaneios" class="aba-conteudo hidden">
                 <h2 class="text-2xl font-bold mb-4">Gestão de Romaneios</h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Formulário Novo Romaneio -->
                     <div class="bg-white p-4 rounded shadow col-span-1">
                         <h3 class="text-lg font-bold mb-3">Novo Registro</h3>
                         <form id="form-romaneio" class="space-y-3">
@@ -126,11 +113,9 @@
                         </form>
                     </div>
                     
-                    <!-- Lista de Romaneios -->
                     <div class="bg-white p-4 rounded shadow col-span-2">
                          <h3 class="text-lg font-bold mb-3">Romaneios Ativos</h3>
                          <ul id="lista-romaneios" class="space-y-2">
-                             <!-- Preenchido via JavaScript -->
                              <li class="text-gray-500 italic">Nenhum romaneio carregado.</li>
                          </ul>
                     </div>
@@ -140,17 +125,12 @@
         </main>
     </div>
 
-    <!-- LÓGICA DO APLICATIVO E INTEGRAÇÃO SUPABASE -->
     <script>
-        // 1. CONFIGURAÇÃO DO SUPABASE
-        // Substitua pelas chaves reais encontradas em Project Settings -> API no painel do Supabase
-        const SUPABASE_URL = 'https://SEU-PROJETO.supabase.co';
-        const SUPABASE_ANON_KEY = 'SUA-CHAVE-PUBLICA-AQUI';
+        const SUPABASE_URL = 'https://asrjgralrkxhulyoqzdh.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_ZQHPjHaFlqFck_IM3Ayukw_8qMcgkwA';
         
-        // Criar o cliente de conexão
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 2. CONTROLE DE INTERFACE DE LOGIN E CADASTRO
         let isLogin = true;
         
         document.getElementById('toggle-auth').addEventListener('click', (e) => {
@@ -164,19 +144,16 @@
             document.getElementById('role-field').classList.toggle('hidden');
         });
 
-        // 3. AUTENTICAÇÃO (LOGIN / REGISTRO)
         document.getElementById('auth-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
             if (isLogin) {
-                // Fazer Login
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) alert('Erro no login: ' + error.message);
                 else verificarSessao();
             } else {
-                // Cadastrar novo usuário
                 const nome = document.getElementById('user-name').value;
                 const cargo = document.getElementById('user-role').value;
                 
@@ -190,29 +167,25 @@
                     return;
                 }
 
-                // Salvar dados na tabela pública de perfis criada no SQL
                 if (data.user) {
                     await supabase.from('perfis').insert([
                         { id: data.user.id, nome: nome, cargo: cargo }
                     ]);
                     alert('Cadastro realizado! Por favor, faça login.');
-                    document.getElementById('toggle-auth').click(); // Volta para tela de login
+                    document.getElementById('toggle-auth').click();
                 }
             }
         });
 
-        // 4. VERIFICAÇÃO DE SESSÃO E ROTEAMENTO
         async function verificarSessao() {
             const { data: { session } } = await supabase.auth.getSession();
             
             if (session) {
-                // Usuário logado: Oculta login, mostra sistema
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
                 document.getElementById('user-info').innerText = session.user.email;
-                carregarEstoque(); // Carrega os dados iniciais
+                carregarEstoque();
             } else {
-                // Não logado: Mostra login, oculta sistema
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('app-screen').classList.add('hidden');
             }
@@ -223,15 +196,11 @@
             verificarSessao();
         }
 
-        // 5. NAVEGAÇÃO ENTRE ABAS
         function mostrarAba(abaId) {
             document.querySelectorAll('.aba-conteudo').forEach(el => el.classList.add('hidden'));
             document.getElementById('aba-' + abaId).classList.remove('hidden');
         }
 
-        // 6. INTEGRAÇÃO COM BANCO DE DADOS (CRUD)
-
-        // Função de Leitura (Estoque)
         async function carregarEstoque() {
             const tbody = document.getElementById('tabela-estoque');
             tbody.innerHTML = '<tr><td colspan="4" class="text-center">Carregando...</td></tr>';
@@ -262,12 +231,10 @@
             });
         }
 
-        // Função de Escrita (Criar Romaneio)
         document.getElementById('form-romaneio').addEventListener('submit', async (e) => {
             e.preventDefault();
             const numDoc = document.getElementById('num-doc').value;
             const tipo = document.getElementById('tipo-romaneio').value;
-            // A placa poderia ser salva em uma coluna nova ou em uma tabela de controle de frota
             const placa = document.getElementById('placa-veiculo').value; 
 
             const { data: { user } } = await supabase.auth.getUser();
@@ -288,7 +255,6 @@
             }
         });
 
-        // Inicia o app checando se o usuário já fez login antes
         verificarSessao();
     </script>
 </body>
