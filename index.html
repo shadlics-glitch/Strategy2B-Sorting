@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strayegy2B Sorting - Mercado Livre Full</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js CDN para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- PDF.js para leitura de arquivos PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .active-nav {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(79, 70, 229, 0.2));
+            border-left: 3px solid #3b82f6;
+            color: #ffffff !important;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-area, #printable-area * {
+                visibility: visible;
+            }
+            #printable-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white !important;
+                color: black !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
+
+    <!-- ================= AUTH CONTAINER ================= -->
+    <div id="auth-container" class="flex-1 flex items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950">
+        <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 p-8 rounded-3xl shadow-2xl shadow-blue-950/30 w-full max-w-md">
+            <div class="text-center mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/20">
+                    <i data-lucide="boxes" class="w-6 h-6 text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">Strayegy2B</h1>
+                <p class="text-slate-400 text-xs mt-1 uppercase tracking-wider font-semibold">Sistema Inteligente de Separação</p>
+            </div>
+
+            <!-- Formulário de Login -->
+            <div id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">E-mail, Usuário ou Login</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                            <i data-lucide="mail" class="w-4 h-4"></i>
+                        </span>
+                        <input type="text" id="login-email" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition" placeholder="admin@strayegy.com ou admin">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Senha</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                            <i data-lucide="lock" class="w-4 h-4"></i>
+                        </span>
+                        <input type="password" id="login-senha" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition" placeholder="••••••••">
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-xs text-slate-400 pt-1">
+                    <button onclick="alert('Instruções de recuperação enviadas para o e-mail cadastrado.')" class="hover:text-blue-400 transition">Esqueci a minha senha</button>
+                </div>
+                <button onclick="realizarLogin()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-blue-600/30 text-sm mt-2">Logar no Sistema</button>
+                <div class="text-center mt-6">
+                    <span class="text-xs text-slate-400">Não tem uma conta? </span>
+                    <button onclick="alternarTelaAuth('cadastro')" class="text-xs text-blue-400 font-semibold hover:underline">Cadastre-se</button>
+                </div>
+            </div>
+
+            <!-- Formulário de Cadastro -->
+            <div id="cadastro-form" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Nome Completo</label>
+                    <input type="text" id="cad-nome" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition" placeholder="Seu Nome">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Usuário (Apelido/Login)</label>
+                    <input type="text" id="cad-usuario" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition" placeholder="ex: joao.silva">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">E-mail</label>
+                    <input type="email" id="cad-email" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition" placeholder="seu.email@empresa.com">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Senha</label>
+                    <input type="password" id="cad-senha" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition" placeholder="••••••••">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Repetir Senha</label>
+                    <input type="password" id="cad-repete-senha" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition" placeholder="••••••••">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Perfil de Acesso</label>
+                    <select id="cad-perfil" onchange="verificarPerfilCadastro()" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                        <option value="colaborador">Colaborador</option>
+                        <option value="administrador">Administrador</option>
+                    </select>
+                </div>
+                <div id="token-box" class="hidden">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Token de Administrador</label>
+                    <input type="password" id="cad-token" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition" placeholder="Insira o token exclusivo">
+                </div>
+                <button onclick="realizarCadastro()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-indigo-600/30 text-sm mt-2">Concluir Cadastro</button>
+                <div class="text-center mt-6">
+                    <span class="text-xs text-slate-400">Já tem uma conta? </span>
+                    <button onclick="alternarTelaAuth('login')" class="text-xs text-indigo-400 font-semibold hover:underline">Voltar ao Login</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= APP CONTAINER ================= -->
+    <div id="app-container" class="flex-1 flex hidden overflow-hidden">
+        
+        <!-- Sidebar Retrátil -->
+        <aside id="sidebar" class="w-64 bg-slate-900/90 backdrop-blur-xl border-r border-slate-800/80 flex flex-col justify-between transition-all duration-300 hidden md:flex z-20 shrink-0">
+            <div>
+                <!-- Header da Sidebar -->
+                <div class="p-4 border-b border-slate-800/80 flex items-center justify-between">
+                    <div id="sidebar-brand" class="flex items-center gap-3 overflow-hidden">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
+                            <i data-lucide="boxes" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div class="brand-text transition-opacity duration-200">
+                            <h2 class="text-base font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent leading-tight">Strayegy2B</h2>
+                            <span id="user-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-semibold border border-blue-500/20 inline-block mt-0.5">Colaborador</span>
+                        </div>
+                    </div>
+                    <button onclick="toggleSidebar()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition shrink-0" title="Recolher Menu">
+                        <i data-lucide="chevron-left" id="sidebar-toggle-icon" class="w-5 h-5 transition-transform duration-300"></i>
+                    </button>
+                </div>
+
+                <!-- Navegação -->
+                <nav class="p-3 space-y-1.5">
+                    <button onclick="mudarSecao('dashboard')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800/60 hover:text-white transition group active-nav">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5 text-slate-400 group-hover:text-blue-400 shrink-0 transition"></i>
+                        <span class="nav-text truncate">Dashboard</span>
+                    </button>
+                    <button onclick="irParaSeparacao()" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800/60 hover:text-white transition group">
+                        <i data-lucide="package-plus" class="w-5 h-5 text-slate-400 group-hover:text-blue-400 shrink-0 transition"></i>
+                        <span class="nav-text truncate">Nova Separação</span>
+                    </button>
+                    <button onclick="mudarSecao('historico')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800/60 hover:text-white transition group">
+                        <i data-lucide="history" class="w-5 h-5 text-slate-400 group-hover:text-blue-400 shrink-0 transition"></i>
+                        <span class="nav-text truncate">Histórico</span>
+                    </button>
+                    <button onclick="mudarSecao('estoque')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800/60 hover:text-white transition group">
+                        <i data-lucide="warehouse" class="w-5 h-5 text-slate-400 group-hover:text-blue-400 shrink-0 transition"></i>
+                        <span class="nav-text truncate">Estoque</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Rodapé da Sidebar / Logout -->
+            <div class="p-3 border-t border-slate-800/80">
+                <button onclick="logout()" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition group">
+                    <i data-lucide="log-out" class="w-5 h-5 shrink-0"></i>
+                    <span class="nav-text truncate">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-y-auto">
+            <!-- Mobile Topbar -->
+            <header class="bg-slate-900 border-b border-slate-800 p-4 flex items-center justify-between md:hidden shrink-0">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+                        <i data-lucide="boxes" class="w-4 h-4 text-white"></i>
+                    </div>
+                    <span class="font-bold text-blue-400 text-sm">Strayegy2B</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <button onclick="mudarSecao('dashboard')" class="p-2 bg-slate-800 rounded-lg text-slate-300 hover:text-white"><i data-lucide="layout-dashboard" class="w-4 h-4"></i></button>
+                    <button onclick="irParaSeparacao()" class="p-2 bg-slate-800 rounded-lg text-slate-300 hover:text-white"><i data-lucide="package-plus" class="w-4 h-4"></i></button>
+                    <button onclick="mudarSecao('historico')" class="p-2 bg-slate-800 rounded-lg text-slate-300 hover:text-white"><i data-lucide="history" class="w-4 h-4"></i></button>
+                    <button onclick="mudarSecao('estoque')" class="p-2 bg-slate-800 rounded-lg text-slate-300 hover:text-white"><i data-lucide="warehouse" class="w-4 h-4"></i></button>
+                    <button onclick="logout()" class="p-2 bg-red-600/20 text-red-400 rounded-lg"><i data-lucide="log-out" class="w-4 h-4"></i></button>
+                </div>
+            </header>
+
+            <div class="flex-1 p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+
+                <!-- 1. DASHBOARD -->
+                <section id="sec-dashboard" class="space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white tracking-tight">Dashboard Operacional</h2>
+                            <p class="text-sm text-slate-400">Métricas e acompanhamento da expedição em tempo real</p>
+                        </div>
+                        <div class="text-xs text-slate-500 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 self-start sm:self-auto">
+                            Status: <span class="text-emerald-400 font-semibold">Online / Conectado</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-5 rounded-2xl shadow-xl shadow-black/20 relative overflow-hidden group hover:border-slate-700 transition">
+                            <div class="flex items-center justify-between text-slate-400 mb-3">
+                                <span class="text-xs font-semibold uppercase tracking-wider">Produtos Bipados</span>
+                                <div class="p-2 rounded-xl bg-blue-500/10 text-blue-400"><i data-lucide="barcode" class="w-4 h-4"></i></div>
+                            </div>
+                            <h3 id="metric-bipados" class="text-3xl font-extrabold text-white tracking-tight">0</h3>
+                        </div>
+                        <div class="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-5 rounded-2xl shadow-xl shadow-black/20 relative overflow-hidden group hover:border-slate-700 transition">
+                            <div class="flex items-center justify-between text-slate-400 mb-3">
+                                <span class="text-xs font-semibold uppercase tracking-wider">Romaneios Completos</span>
+                                <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400"><i data-lucide="check-circle-2" class="w-4 h-4"></i></div>
+                            </div>
+                            <h3 id="metric-completos" class="text-3xl font-extrabold text-white tracking-tight">0</h3>
+                        </div>
+                        <div class="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-5 rounded-2xl shadow-xl shadow-black/20 relative overflow-hidden group hover:border-slate-700 transition">
+                            <div class="flex items-center justify-between text-slate-400 mb-3">
+                                <span class="text-xs font-semibold uppercase tracking-wider">Romaneios Incompletos</span>
+                                <div class="p-2 rounded-xl bg-amber-500/10 text-amber-400"><i data-lucide="alert-circle" class="w-4 h-4"></i></div>
+                            </div>
+                            <h3 id="metric-incompletos" class="text-3xl font-extrabold text-white tracking-tight">0</h3>
+                        </div>
+                        <div class="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-5 rounded-2xl shadow-xl shadow-black/20 relative overflow-hidden group hover:border-slate-700 transition">
+                            <div class="flex items-center justify-between text-slate-400 mb-3">
+                                <span class="text-xs font-semibold uppercase tracking-wider">Separações Finalizadas</span>
+                                <div class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400"><i data-lucide="clipboard-check" class="w-4 h-4"></i></div>
+                            </div>
+                            <h3 id="metric-finalizadas" class="text-3xl font-extrabold text-white tracking-tight">0</h3>
+                        </div>
+                    </div>
+
+                    <!-- Bloco do Gráfico dos Itens mais Bipados -->
+                    <div class="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-6 rounded-2xl shadow-xl space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <div>
+                                <h3 class="text-base font-bold text-white">Top 10 - Itens Mais Bipados</h3>
+                                <p class="text-xs text-slate-400 mt-0.5">Incidência de bipes consolidada com base nos romaneios finalizados (considera todos os bipes executados).</p>
+                            </div>
+                            <button onclick="abrirAnaliseCompleta()" class="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-4 py-2 rounded-xl text-xs font-semibold transition self-start sm:self-auto flex items-center gap-1.5">
+                                <i data-lucide="bar-chart-2" class="w-4 h-4"></i> Análise completa
+                            </button>
+                        </div>
+                        <div class="h-72 relative w-full">
+                            <canvas id="graficoTopBipados"></canvas>
+                        </div>
+                    </div>
+
+                    <div id="admin-analytics" class="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-6 rounded-2xl shadow-xl hidden">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-base font-bold text-white">Visão Consolidada (Administrador)</h3>
+                                <p class="text-xs text-slate-400 mt-0.5">Desempenho agregado de todos os colaboradores ativos na operação.</p>
+                            </div>
+                            <div class="p-2 bg-slate-800/80 rounded-xl text-slate-400"><i data-lucide="shield-check" class="w-5 h-5 text-indigo-400"></i></div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-300">
+                                <thead class="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider">
+                                    <tr>
+                                        <th class="pb-3 font-semibold">Colaborador</th>
+                                        <th class="pb-3 font-semibold">Romaneios Finalizados</th>
+                                        <th class="pb-3 font-semibold">Itens Separados</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-table-body" class="divide-y divide-slate-800/50">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2A. TELA DE ANEXO DE ROMANEIO (Etapa 1) -->
+                <section id="sec-anexo" class="space-y-6 hidden">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white tracking-tight">Anexar Romaneio</h2>
+                        <p class="text-sm text-slate-400">Carregue o arquivo PDF do romaneio para extração de dados e iniciar a separação.</p>
+                    </div>
+
+                    <div class="bg-slate-900/60 backdrop-blur-xl border border-dashed border-slate-700 hover:border-blue-500/50 transition-colors duration-300 p-12 rounded-2xl flex flex-col items-center justify-center text-center shadow-xl">
+                        <div class="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mb-4 border border-blue-500/20">
+                            <i data-lucide="file-up" class="w-8 h-8 text-blue-400"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Selecione o arquivo PDF do romaneio</h3>
+                        <p class="text-sm text-slate-400 mb-6 max-w-md">O sistema fará a leitura e identificará automaticamente EAN, SKU, descrições e unidades contidas no arquivo.</p>
+                        
+                        <input type="file" id="pdf-file-input" accept=".pdf" class="hidden" onchange="carregarPDFUniversal(event)">
+                        <button onclick="document.getElementById('pdf-file-input').click()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-8 py-3.5 rounded-xl font-semibold transition shadow-lg shadow-blue-600/30 flex items-center gap-2 text-sm">
+                            <i data-lucide="upload" class="w-5 h-5"></i> Procurar e Anexar Arquivo
+                        </button>
+                    </div>
+                </section>
+
+                <!-- 2B. TELA DE NOVA SEPARAÇÃO - WORKSPACE (Etapa 2) -->
+                <section id="sec-nova-separacao" class="space-y-6 hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white tracking-tight">Nova Separação</h2>
+                            <p class="text-sm text-slate-400">Área de bipagem e segregação de itens do romaneio ativo</p>
+                        </div>
+                        <button onclick="voltarParaAnexo()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-xl text-sm font-semibold transition border border-slate-700 flex items-center gap-2 shadow-lg">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar para Anexo
+                        </button>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-5 rounded-2xl grid grid-cols-1 md:grid-cols-4 gap-4 items-end shadow-xl">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Entrada (EAN / SKU)</label>
+                                <input type="text" id="input-ean-sku" placeholder="Digite ou Bipe EAN/SKU" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition" onkeydown="tratarInputKey(event)">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Múltiplo</label>
+                                <input type="number" id="input-multiplo" value="1" min="1" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Modo de Registro</label>
+                                <select id="select-modo" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                                    <option value="automatico">Automático</option>
+                                    <option value="manual">Manual</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="executarAcaoSeparacao('adicionar')" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/20">
+                                    Adicionar
+                                </button>
+                                <button onclick="executarAcaoSeparacao('remover')" class="flex-1 bg-red-600/80 hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl text-xs uppercase tracking-wider transition">
+                                    Remover
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
+                            <div class="p-4 border-b border-slate-800/80 flex justify-between items-center bg-slate-950/30">
+                                <span id="romaneio-filename" class="text-sm font-semibold text-blue-400 flex items-center gap-2"></span>
+                                <span id="pallet-atual-badge" class="text-xs bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full font-semibold">Pallet 1</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm text-slate-300">
+                                    <thead class="bg-slate-950/50 text-slate-400 border-b border-slate-800 text-xs uppercase tracking-wider">
+                                        <tr>
+                                            <th class="p-4 font-semibold">EAN</th>
+                                            <th class="p-4 font-semibold">SKU</th>
+                                            <th class="p-4 font-semibold">Descrição do Item</th>
+                                            <th class="p-4 font-semibold">Unidade (Alvo)</th>
+                                            <th class="p-4 font-semibold">Separados</th>
+                                            <th class="p-4 font-semibold">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabela-itens-body" class="divide-y divide-slate-800/50">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button onclick="irParaImpressao()" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-600/30 transition text-sm flex items-center gap-2">
+                                <i data-lucide="printer" class="w-4 h-4"></i> FECHAR PALLET
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. SESSÃO IMPRESSÃO & FECHAMENTO DE PALLET -->
+                <section id="sec-impressao" class="space-y-6 hidden">
+                    <div class="flex items-center justify-between no-print">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white tracking-tight">Sessão de Impressão e Pallet</h2>
+                            <p class="text-sm text-slate-400">Confira e imprima os itens segregados neste pallet ou de todos os pallets</p>
+                        </div>
+                        <button onclick="voltarParaSeparacao()" class="text-sm text-blue-400 hover:underline flex items-center gap-1 font-medium">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Continuar Separação
+                        </button>
+                    </div>
+
+                    <div id="printable-area" class="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-6 rounded-2xl space-y-6 shadow-xl">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                            <div>
+                                <h3 id="impressao-pallet-titulo" class="text-xl font-bold text-white">Pallet 1</h3>
+                                <p class="text-xs text-slate-400 mt-0.5">Lista exclusiva de itens segregados</p>
+                            </div>
+                            <div class="flex gap-2 no-print">
+                                <button onclick="imprimirPalletIndividual()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition border border-slate-700 flex items-center gap-2">
+                                    <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Pallet Individual
+                                </button>
+                                <button onclick="imprimirTodosPallets()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition flex items-center gap-2">
+                                    <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Todos os Pallets
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-300">
+                                <thead class="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider">
+                                    <tr>
+                                        <th class="pb-3 font-semibold">EAN</th>
+                                        <th class="pb-3 font-semibold">SKU</th>
+                                        <th class="pb-3 font-semibold">Descrição</th>
+                                        <th class="pb-3 font-semibold">Qtd. Separada no Pallet</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabela-impressao-body" class="divide-y divide-slate-800/50">
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-800 no-print">
+                            <button onclick="fecharPalletNovo()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-6 py-3 rounded-xl font-bold transition text-sm">
+                                Novo Pallet
+                            </button>
+                            <button onclick="finalizarRomaneio()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-emerald-600/30 transition text-sm">
+                                Finalizar Separação
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. HISTÓRICO DE SEPARAÇÕES -->
+                <section id="sec-historico" class="space-y-6 hidden">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white tracking-tight">Histórico de Separações</h2>
+                        <p class="text-sm text-slate-400">Rastreabilidade completa de romaneios executados e volume processado</p>
+                    </div>
+
+                    <div class="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-300">
+                                <thead class="bg-slate-950/50 text-slate-400 border-b border-slate-800 text-xs uppercase tracking-wider">
+                                    <tr>
+                                        <th class="p-4 font-semibold">Romaneio / Arquivo</th>
+                                        <th class="p-4 font-semibold">Colaborador</th>
+                                        <th class="p-4 font-semibold">Data da Finalização</th>
+                                        <th class="p-4 font-semibold">Volume</th>
+                                        <th class="p-4 font-semibold">Status</th>
+                                        <th class="p-4 text-right font-semibold">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabela-historico-body" class="divide-y divide-slate-800/50">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. SELEÇÃO DE PALLET PARA RETOMADA -->
+                <section id="sec-retomar-pallet" class="space-y-6 hidden">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white tracking-tight">Retomar Separação por Pallet</h2>
+                            <p class="text-sm text-slate-400">Selecione qual pallet deseja continuar processando</p>
+                        </div>
+                        <button onclick="mudarSecao('historico')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-xl text-sm font-semibold transition border border-slate-700 flex items-center gap-2">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar ao Histórico
+                        </button>
+                    </div>
+
+                    <div id="lista-pallets-retomada" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Preenchido dinamicamente -->
+                    </div>
+                </section>
+
+                <!-- 6. SEÇÃO VISUALIZAÇÃO DE PALLETS (Histórico) -->
+                <section id="sec-visualizar-pallets" class="space-y-6 hidden">
+                    <div class="flex items-center justify-between no-print">
+                        <div>
+                            <h2 id="vis-pallets-titulo" class="text-2xl font-bold text-white tracking-tight">Pallets do Romaneio</h2>
+                            <p class="text-sm text-slate-400">Selecione um pallet para visualizar os produtos segregados</p>
+                        </div>
+                        <button onclick="mudarSecao('historico')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-xl text-sm font-semibold transition border border-slate-700 flex items-center gap-2">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar ao Histórico
+                        </button>
+                    </div>
+
+                    <div id="printable-vis-area" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Lista de Botões de Pallets -->
+                        <div class="space-y-3 no-print">
+                            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pallets Criados</h3>
+                            <div id="lista-botoes-pallets-vis" class="space-y-2">
+                                <!-- Preenchido dinamicamente -->
+                            </div>
+                        </div>
+
+                        <!-- Lista de Produtos do Pallet Selecionado -->
+                        <div class="lg:col-span-2 bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-6 rounded-2xl shadow-xl space-y-4">
+                            <div class="flex justify-between items-center">
+                                <h3 id="vis-pallet-subtitulo" class="text-base font-bold text-white">Selecione um pallet ao lado</h3>
+                                <div class="flex gap-2 no-print">
+                                    <button onclick="imprimirPalletVisualizacaoIndividual()" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition border border-slate-700 flex items-center gap-1.5">
+                                        <i data-lucide="printer" class="w-3.5 h-3.5"></i> Imprimir Pallet Individual
+                                    </button>
+                                    <button onclick="imprimirTodosPalletsVisualizacao()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                                        <i data-lucide="printer" class="w-3.5 h-3.5"></i> Imprimir Todos os Pallets
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm text-slate-300">
+                                    <thead class="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider">
+                                        <tr>
+                                            <th class="pb-3 font-semibold">EAN</th>
+                                            <th class="pb-3 font-semibold">SKU</th>
+                                            <th class="pb-3 font-semibold">Descrição</th>
+                                            <th class="pb-3 font-semibold text-right">Qtd. Separada</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabela-vis-pallet-body" class="divide-y divide-slate-800/50">
+                                        <tr><td colspan="4" class="py-4 text-center text-slate-500">Nenhum pallet selecionado.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. SEÇÃO ESTOQUE (Hub / Consultar / Editar) -->
+                <section id="sec-estoque" class="space-y-6 hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white tracking-tight">Gestão de Estoque</h2>
+                            <p class="text-sm text-slate-400">Consulte ou gerencie o inventário de produtos e lotes</p>
+                        </div>
+                        <div id="estoque-botoes-topo" class="flex gap-2">
+                            <!-- Preenchido dinamicamente base no perfil -->
+                        </div>
+                    </div>
+
+                    <!-- Sub-visão: Consulta de Estoque -->
+                    <div id="sub-estoque-consulta" class="space-y-4">
+                        <div class="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-4 rounded-2xl shadow-xl flex items-center gap-3">
+                            <i data-lucide="search" class="w-5 h-5 text-slate-400 shrink-0"></i>
+                            <input type="text" id="input-busca-estoque" oninput="filtrarEstoque()" placeholder="Pesquisar por lote, SKU, EAN, data de validade ou descrição..." class="w-full bg-transparent text-sm text-white focus:outline-none">
+                        </div>
+
+                        <div class="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm text-slate-300">
+                                    <thead class="bg-slate-950/50 text-slate-400 border-b border-slate-800 text-xs uppercase tracking-wider">
+                                        <tr>
+                                            <th class="p-4 font-semibold">EAN</th>
+                                            <th class="p-4 font-semibold">SKU</th>
+                                            <th class="p-4 font-semibold">Descrição do Produto</th>
+                                            <th class="p-4 font-semibold">Lote</th>
+                                            <th class="p-4 font-semibold">Validade</th>
+                                            <th class="p-4 font-semibold text-right">Quantidade</th>
+                                            <th id="th-acoes-estoque" class="p-4 font-semibold text-right hidden">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabela-estoque-body" class="divide-y divide-slate-800/50">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-visão: Edição de Estoque (Apenas Admin - sem botão de remover) -->
+                    <div id="sub-estoque-edicao" class="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-6 rounded-2xl shadow-xl space-y-6 hidden">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Editar Estoque / Adicionar Item</h3>
+                                <p class="text-xs text-slate-400 mt-0.5">Insira os dados do item para atualização ou entrada no inventário</p>
+                            </div>
+                            <button onclick="mudarSubEstoque('consulta')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl text-xs font-semibold transition border border-slate-700 flex items-center gap-1.5">
+                                <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar à Consulta
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">EAN</label>
+                                <input type="text" id="est-ean" placeholder="Ex: 7891029384756" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">SKU</label>
+                                <input type="text" id="est-sku" placeholder="Ex: PROD-SKU-01" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Descrição do Produto</label>
+                                <input type="text" id="est-descricao" placeholder="Ex: Camiseta Básica Algodão G" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Quantidade</label>
+                                <input type="number" id="est-qtd" min="1" value="1" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Lote</label>
+                                <input type="text" id="est-lote" placeholder="Ex: LOT2026-A" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Data de Validade</label>
+                                <input type="date" id="est-validade" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 pt-4 border-t border-slate-800">
+                            <button onclick="executarMovimentacaoEstoque('adicionar')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i> Salvar / Adicionar ao Estoque
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Análise Completa -->
+    <div id="modal-analise" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-5 h-5 text-blue-400"></i> Análise Completa de Itens Bipados</h3>
+                <button onclick="fecharModalAnalise()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="overflow-x-auto max-h-96">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider">
+                        <tr>
+                            <th class="p-3">SKU</th>
+                            <th class="p-3">Descrição do Item</th>
+                            <th class="p-3 text-right">Total Bipado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-analise-completa" class="divide-y divide-slate-800/50">
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-end pt-3 border-t border-slate-800">
+                <button onclick="fecharModalAnalise()" class="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-xl text-sm font-semibold transition border border-slate-700">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Alerta de Confirmação & Mensagem de Confirmação -->
+    <div id="modal-confirmacao-estoque" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-center">
+            <div id="modal-conf-icone" class="w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-2">
+                <!-- Ícone dinâmico -->
+            </div>
+            <h3 id="modal-conf-titulo" class="text-lg font-bold text-white">Confirmação de Movimentação</h3>
+            <p id="modal-conf-texto" class="text-sm text-slate-300">Deseja realmente prosseguir?</p>
+            <div id="modal-conf-input-container" class="my-2 hidden">
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5 text-left">Quantidade a excluir:</label>
+                <input type="number" id="modal-input-qtd-exclusao" min="1" value="1" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+            </div>
+            <div id="modal-conf-botoes" class="flex gap-3 pt-2">
+                <!-- Botões de confirmação ou OK -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        let estadoApp = {
+            usuarioLogado: null,
+            usuariosCadastrados: [
+                { nome: 'Administrador Master', usuario: 'admin', email: 'admin@strayegy.com', senha: '123', perfil: 'administrador' },
+                { nome: 'Colaborador João', usuario: 'joao', email: 'joao@strayegy.com', senha: '123', perfil: 'colaborador' }
+            ],
+            romaneioAtual: null,
+            historicoRomaneios: [],
+            contadorPallet: 1,
+            estoque: [
+                { ean: '7891029384756', sku: 'ML-FULL-01', descricao: 'Smartphone Poco X6 Pro 512GB', lote: 'LOTE-A26', validade: '2028-12-31', quantidade: 45 },
+                { ean: '7891029384763', sku: 'ML-FULL-02', descricao: 'Fone de Ouvido Bluetooth TWS', lote: 'LOTE-B26', validade: '2027-06-15', quantidade: 120 },
+                { ean: '7891029384770', sku: 'ML-FULL-03', descricao: 'Suporte Veicular Magnético Aviator', lote: 'LOTE-C26', validade: '2029-01-10', quantidade: 85 }
+            ]
+        };
+
+        let sidebarColapsado = false;
+        let graficoInstancia = null;
+        let palletVisualizandoAtualId = null;
+        let palletVisualizandoAtualNum = null;
+        let acaoPendenteEstoque = null;
+        let dadosMovimentoPendente = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            inicializarIcones();
+            inicializarGrafico();
+        });
+
+        function inicializarIcones() {
+            try {
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            } catch (e) {
+                console.log("Erro ao carregar ícones.");
+            }
+        }
+
+        function toggleSidebar() {
+            sidebarColapsado = !sidebarColapsado;
+            const sidebar = document.getElementById('sidebar');
+            const brandText = document.querySelectorAll('.brand-text');
+            const navTexts = document.querySelectorAll('.nav-text');
+            const toggleIcon = document.getElementById('sidebar-toggle-icon');
+            
+            if(sidebarColapsado) {
+                sidebar.classList.remove('w-64');
+                sidebar.classList.add('w-20');
+                brandText.forEach(el => el.classList.add('hidden'));
+                navTexts.forEach(el => el.classList.add('hidden'));
+                toggleIcon.style.transform = 'rotate(180deg)';
+            } else {
+                sidebar.classList.remove('w-20');
+                sidebar.classList.add('w-64');
+                brandText.forEach(el => el.classList.remove('hidden'));
+                navTexts.forEach(el => el.classList.remove('hidden'));
+                toggleIcon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function alternarTelaAuth(tipo) {
+            if(tipo === 'cadastro') {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('cadastro-form').classList.remove('hidden');
+            } else {
+                document.getElementById('cadastro-form').classList.add('hidden');
+                document.getElementById('login-form').classList.remove('hidden');
+            }
+        }
+
+        function verificarPerfilCadastro() {
+            const perfil = document.getElementById('cad-perfil').value;
+            const tokenBox = document.getElementById('token-box');
+            if(perfil === 'administrador') {
+                tokenBox.classList.remove('hidden');
+            } else {
+                tokenBox.classList.add('hidden');
+            }
+        }
+
+        function realizarCadastro() {
+            const nome = document.getElementById('cad-nome').value.trim();
+            const usuario = document.getElementById('cad-usuario').value.trim();
+            const email = document.getElementById('cad-email').value.trim();
+            const senha = document.getElementById('cad-senha').value.trim();
+            const repeteSenha = document.getElementById('cad-repete-senha').value.trim();
+            const perfil = document.getElementById('cad-perfil').value;
+            const token = document.getElementById('cad-token').value.trim();
+
+            if(!nome || !usuario || !email || !senha || !repeteSenha) {
+                alert('Preencha todos os campos obrigatórios!');
+                return;
+            }
+
+            if(senha !== repeteSenha) {
+                alert('As senhas não coincidem. Verifique e tente novamente.');
+                return;
+            }
+
+            if(perfil === 'administrador' && token !== 'str@tegyadmin777') {
+                alert('Token de administrador inválido! Utilize o token correto.');
+                return;
+            }
+
+            estadoApp.usuariosCadastrados.push({ nome, usuario, email, senha, perfil });
+            alert('Cadastro realizado com sucesso! Faça login.');
+            alternarTelaAuth('login');
+        }
+
+        function realizarLogin() {
+            const loginInput = document.getElementById('login-email').value.trim();
+            const senha = document.getElementById('login-senha').value.trim();
+
+            const usuarioEncontrado = estadoApp.usuariosCadastrados.find(u => (u.email === loginInput || u.usuario === loginInput) && u.senha === senha);
+            if(!usuarioEncontrado) {
+                alert('Usuário/E-mail ou senha incorretos! (Dica: admin@strayegy.com / 123)');
+                return;
+            }
+
+            estadoApp.usuarioLogado = usuarioEncontrado;
+            document.getElementById('auth-container').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+
+            const badge = document.getElementById('user-badge');
+            badge.innerText = usuarioEncontrado.perfil.toUpperCase();
+            badge.className = usuarioEncontrado.perfil === 'administrador' 
+                ? 'text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-semibold border border-indigo-500/20 inline-block mt-0.5' 
+                : 'text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-semibold border border-blue-500/20 inline-block mt-0.5';
+
+            if(usuarioEncontrado.perfil === 'administrador') {
+                document.getElementById('admin-analytics').classList.remove('hidden');
+            } else {
+                document.getElementById('admin-analytics').classList.add('hidden');
+            }
+
+            atualizarDashboard();
+            mudarSecao('dashboard');
+        }
+
+        function logout() {
+            estadoApp.usuarioLogado = null;
+            document.getElementById('app-container').classList.add('hidden');
+            document.getElementById('auth-container').classList.remove('hidden');
+        }
+
+        function mudarSecao(secaoId) {
+            ['sec-dashboard', 'sec-anexo', 'sec-nova-separacao', 'sec-impressao', 'sec-historico', 'sec-retomar-pallet', 'sec-visualizar-pallets', 'sec-estoque'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById('sec-' + secaoId).classList.remove('hidden');
+            
+            const botoes = document.querySelectorAll('.nav-btn');
+            botoes.forEach(b => b.classList.remove('active-nav'));
+            
+            if(secaoId === 'dashboard') {
+                atualizarDashboard();
+                botoes[0]?.classList.add('active-nav');
+            }
+            if(secaoId === 'anexo' || secaoId === 'nova-separacao') botoes[1]?.classList.add('active-nav');
+            if(secaoId === 'historico' || secaoId === 'retomar-pallet' || secaoId === 'visualizar-pallets') {
+                if(secaoId === 'historico') renderizarHistorico();
+                botoes[2]?.classList.add('active-nav');
+            }
+            if(secaoId === 'estoque') {
+                renderizarEstoque();
+                configurarBotoesEstoqueTopo();
+                mudarSubEstoque('consulta');
+                botoes[3]?.classList.add('active-nav');
+            }
+            
+            setTimeout(inicializarIcones, 50);
+        }
+
+        function irParaSeparacao() {
+            if (estadoApp.romaneioAtual) {
+                mudarSecao('nova-separacao');
+            } else {
+                mudarSecao('anexo');
+            }
+        }
+
+        function voltarParaAnexo() {
+            if (estadoApp.romaneioAtual) {
+                if (!confirm("Atenção: Ao voltar, o romaneio atual será cancelado e o progresso perdido. Deseja continuar?")) {
+                    return;
+                }
+                estadoApp.romaneioAtual = null;
+                document.getElementById('pdf-file-input').value = "";
+            }
+            mudarSecao('anexo');
+        }
+
+        // ================= DASHBOARD & GRÁFICO (CONSIDERA TODOS OS ITENS BIPADOS APÓS FINALIZAR) =================
+        function inicializarGrafico() {
+            const ctx = document.getElementById('graficoTopBipados').getContext('2d');
+            graficoInstancia = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Quantidade Bipada',
+                        data: [],
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function atualizarDashboard() {
+            const hist = estadoApp.historicoRomaneios;
+            const filtrado = estadoApp.usuarioLogado.perfil === 'administrador' 
+                ? hist 
+                : hist.filter(h => h.colaborador === estadoApp.usuarioLogado.nome);
+
+            let totalBipados = 0;
+            let completos = 0;
+            let incompletos = 0;
+            let mapaItensBipados = {};
+
+            filtrado.forEach(h => {
+                if(h.tipoRomaneio === 'completo') completos++;
+                else incompletos++;
+                
+                h.palletsRegistrados.forEach(p => {
+                    p.itens.forEach(i => {
+                        const qtdSeparada = i.separados || 0;
+                        totalBipados += qtdSeparada;
+                        
+                        if(qtdSeparada > 0) {
+                            if(!mapaItensBipados[i.sku]) {
+                                mapaItensBipados[i.sku] = { descricao: i.descricao, total: 0 };
+                            }
+                            mapaItensBipados[i.sku].total += qtdSeparada;
+                        }
+                    });
+                });
+            });
+
+            document.getElementById('metric-bipados').innerText = totalBipados;
+            document.getElementById('metric-completos').innerText = completos;
+            document.getElementById('metric-incompletos').innerText = incompletos;
+            document.getElementById('metric-finalizadas').innerText = filtrado.length;
+
+            const itensOrdenados = Object.entries(mapaItensBipados)
+                .sort((a, b) => b[1].total - a[1].total)
+                .slice(0, 10);
+
+            if(graficoInstancia) {
+                graficoInstancia.data.labels = itensOrdenados.map(item => item[1].descricao.substring(0, 15) + '...');
+                graficoInstancia.data.datasets[0].data = itensOrdenados.map(item => item[1].total);
+                graficoInstancia.update();
+            }
+
+            if(estadoApp.usuarioLogado.perfil === 'administrador') {
+                const tbody = document.getElementById('admin-table-body');
+                tbody.innerHTML = '';
+                
+                const colaboradoresMap = {};
+                estadoApp.usuariosCadastrados.filter(u => u.perfil === 'colaborador').forEach(c => {
+                    colaboradoresMap[c.nome] = { finalizados: 0, itens: 0 };
+                });
+
+                hist.forEach(h => {
+                    if(colaboradoresMap[h.colaborador]) {
+                        colaboradoresMap[h.colaborador].finalizados++;
+                        h.palletsRegistrados.forEach(p => {
+                            p.itens.forEach(i => colaboradoresMap[h.colaborador].itens += (i.separados || 0));
+                        });
+                    }
+                });
+
+                for(let colab in colaboradoresMap) {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-800/30 transition">
+                            <td class="py-3 px-2 font-medium text-white">${colab}</td>
+                            <td class="py-3 px-2">${colaboradoresMap[colab].finalizados}</td>
+                            <td class="py-3 px-2 font-semibold text-blue-400">${colaboradoresMap[colab].itens}</td>
+                        </tr>
+                    `;
+                }
+            }
+        }
+
+        function abrirAnaliseCompleta() {
+            const hist = estadoApp.usuarioLogado.perfil === 'administrador' 
+                ? estadoApp.historicoRomaneios 
+                : estadoApp.historicoRomaneios.filter(h => h.colaborador === estadoApp.usuarioLogado.nome);
+
+            let mapaItensBipados = {};
+            hist.forEach(h => {
+                h.palletsRegistrados.forEach(p => {
+                    p.itens.forEach(i => {
+                        if(i.separados > 0) {
+                            if(!mapaItensBipados[i.sku]) {
+                                mapaItensBipados[i.sku] = { descricao: i.descricao, total: 0 };
+                            }
+                            mapaItensBipados[i.sku].total += i.separados;
+                        }
+                    });
+                });
+            });
+
+            const itensOrdenados = Object.entries(mapaItensBipados).sort((a, b) => b[1].total - a[1].total);
+            const tbody = document.getElementById('tabela-analise-completa');
+            tbody.innerHTML = '';
+
+            if(itensOrdenados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">Nenhum item bipado registrado até o momento.</td></tr>`;
+            } else {
+                itensOrdenados.forEach(([sku, dados]) => {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-800/30 transition">
+                            <td class="p-3 font-mono text-xs text-blue-400">${sku}</td>
+                            <td class="p-3 text-white font-medium">${dados.descricao}</td>
+                            <td class="p-3 text-right font-bold text-emerald-400">${dados.total}</td>
+                        </tr>
+                    `;
+                });
+            }
+            document.getElementById('modal-analise').classList.remove('hidden');
+        }
+
+        function fecharModalAnalise() {
+            document.getElementById('modal-analise').classList.add('hidden');
+        }
+
+        // ================= GESTÃO DE ESTOQUE =================
+        function configurarBotoesEstoqueTopo() {
+            const container = document.getElementById('estoque-botoes-topo');
+            container.innerHTML = '';
+
+            const thAcoes = document.getElementById('th-acoes-estoque');
+            if(estadoApp.usuarioLogado.perfil === 'administrador') {
+                thAcoes.classList.remove('hidden');
+                container.innerHTML = `
+                    <button onclick="mudarSubEstoque('edicao')" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition flex items-center gap-2 shadow-lg shadow-blue-600/20">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Adicionar / Cadastrar Item
+                    </button>
+                    <button onclick="mudarSubEstoque('consulta')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-xl text-xs font-semibold transition border border-slate-700 flex items-center gap-2">
+                        <i data-lucide="search" class="w-4 h-4"></i> Consultar Estoque
+                    </button>
+                `;
+            } else {
+                thAcoes.classList.add('hidden');
+                container.innerHTML = `
+                    <span class="text-xs bg-slate-900 px-3 py-1.5 rounded-xl text-slate-400 border border-slate-800 flex items-center gap-2">
+                        <i data-lucide="shield" class="w-4 h-4 text-blue-400"></i> Modo Consulta (Colaborador)
+                    </span>
+                `;
+            }
+            setTimeout(inicializarIcones, 50);
+        }
+
+        function mudarSubEstoque(sub) {
+            if(sub === 'consulta') {
+                document.getElementById('sub-estoque-consulta').classList.remove('hidden');
+                document.getElementById('sub-estoque-edicao').classList.add('hidden');
+                renderizarEstoque();
+            } else {
+                if(estadoApp.usuarioLogado.perfil !== 'administrador') {
+                    alert('Acesso restrito a administradores.');
+                    return;
+                }
+                document.getElementById('sub-estoque-consulta').classList.add('hidden');
+                document.getElementById('sub-estoque-edicao').classList.remove('hidden');
+            }
+        }
+
+        function renderizarEstoque(termoBusca = '') {
+            const tbody = document.getElementById('tabela-estoque-body');
+            tbody.innerHTML = '';
+
+            const termo = termoBusca.trim().toLowerCase();
+            const estoqueFiltrado = estadoApp.estoque.filter(item => {
+                if(!termo) return true;
+                return item.ean.toLowerCase().includes(termo) ||
+                       item.sku.toLowerCase().includes(termo) ||
+                       item.descricao.toLowerCase().includes(termo) ||
+                       item.lote.toLowerCase().includes(termo) ||
+                       item.validade.toLowerCase().includes(termo);
+            });
+
+            const isAdmin = estadoApp.usuarioLogado && estadoApp.usuarioLogado.perfil === 'administrador';
+            const colSpanVal = isAdmin ? 7 : 6;
+
+            if(estoqueFiltrado.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${colSpanVal}" class="p-6 text-center text-slate-500">Nenhum produto encontrado no estoque.</td></tr>`;
+                return;
+            }
+
+            estoqueFiltrado.forEach((item, index) => {
+                const destaque = termo && (
+                    item.ean.toLowerCase().includes(termo) ||
+                    item.sku.toLowerCase().includes(termo) ||
+                    item.descricao.toLowerCase().includes(termo) ||
+                    item.lote.toLowerCase().includes(termo) ||
+                    item.validade.toLowerCase().includes(termo)
+                );
+
+                const bgRowClass = destaque ? 'bg-blue-600/10 border-l-4 border-blue-500' : 'hover:bg-slate-800/30 transition';
+
+                let acoesHtml = '';
+                if(isAdmin) {
+                    acoesHtml = `
+                        <td class="p-4 text-right">
+                            <button onclick="solicitarExclusaoEstoque(${index})" class="bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ml-auto">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Excluir
+                            </button>
+                        </td>
+                    `;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="${bgRowClass}">
+                        <td class="p-4 font-mono text-xs text-slate-400">${item.ean}</td>
+                        <td class="p-4 font-mono text-xs text-blue-400">${item.sku}</td>
+                        <td class="p-4 text-white font-medium">${item.descricao}</td>
+                        <td class="p-4 font-mono text-xs text-indigo-300">${item.lote}</td>
+                        <td class="p-4 text-slate-300 text-xs">${item.validade}</td>
+                        <td class="p-4 text-right font-bold text-emerald-400">${item.quantidade}</td>
+                        ${acoesHtml}
+                    </tr>
+                `;
+            });
+            setTimeout(inicializarIcones, 50);
+        }
+
+        function filtrarEstoque() {
+            const termo = document.getElementById('input-busca-estoque').value;
+            renderizarEstoque(termo);
+        }
+
+        function executarMovimentacaoEstoque(acao) {
+            const ean = document.getElementById('est-ean').value.trim();
+            const sku = document.getElementById('est-sku').value.trim();
+            const descricao = document.getElementById('est-descricao').value.trim();
+            const quantidade = parseInt(document.getElementById('est-qtd').value) || 0;
+            const lote = document.getElementById('est-lote').value.trim();
+            const validade = document.getElementById('est-validade').value;
+
+            if(!ean || !sku || !descricao || quantidade <= 0 || !lote || !validade) {
+                alert('Preencha todos os campos corretamente para adicionar ao estoque.');
+                return;
+            }
+
+            acaoPendenteEstoque = acao;
+            dadosMovimentoPendente = { ean, sku, descricao, quantidade, lote, validade };
+
+            const modal = document.getElementById('modal-confirmacao-estoque');
+            const iconeDiv = document.getElementById('modal-conf-icone');
+            const titulo = document.getElementById('modal-conf-titulo');
+            const texto = document.getElementById('modal-conf-texto');
+            const inputContainer = document.getElementById('modal-conf-input-container');
+            const botoes = document.getElementById('modal-conf-botoes');
+
+            inputContainer.classList.add('hidden');
+            iconeDiv.className = 'w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+            iconeDiv.innerHTML = '<i data-lucide="plus-circle" class="w-7 h-7"></i>';
+            titulo.innerText = 'Confirmar Adição no Estoque';
+            texto.innerText = `Deseja adicionar ${quantidade} unidade(s) do produto ${sku} (Lote: ${lote}) ao estoque?`;
+
+            botoes.innerHTML = `
+                <button onclick="fecharModalConfirmacaoEstoque()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl text-xs font-semibold transition border border-slate-700">Cancelar</button>
+                <button onclick="confirmarMovimentacaoEstoqueEfetiva()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-xs font-semibold transition shadow-lg">Confirmar</button>
+            `;
+
+            modal.classList.remove('hidden');
+            setTimeout(inicializarIcones, 50);
+        }
+
+        function solicitarExclusaoEstoque(index) {
+            const item = estadoApp.estoque[index];
+            if(!item) return;
+
+            acaoPendenteEstoque = 'excluir_parcial';
+            dadosMovimentoPendente = { index, item };
+
+            const modal = document.getElementById('modal-confirmacao-estoque');
+            const iconeDiv = document.getElementById('modal-conf-icone');
+            const titulo = document.getElementById('modal-conf-titulo');
+            const texto = document.getElementById('modal-conf-texto');
+            const inputContainer = document.getElementById('modal-conf-input-container');
+            const inputQtd = document.getElementById('modal-input-qtd-exclusao');
+            const botoes = document.getElementById('modal-conf-botoes');
+
+            inputQtd.value = '1';
+            inputQtd.max = item.quantidade;
+            inputContainer.classList.remove('hidden');
+
+            iconeDiv.className = 'w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-2 bg-red-500/20 text-red-400 border border-red-500/30';
+            iconeDiv.innerHTML = '<i data-lucide="trash-2" class="w-7 h-7"></i>';
+            titulo.innerText = 'Excluir Unidades do Estoque';
+            texto.innerText = `Item: ${item.sku} - ${item.descricao} (Estoque atual: ${item.quantidade})`;
+
+            botoes.innerHTML = `
+                <button onclick="fecharModalConfirmacaoEstoque()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl text-xs font-semibold transition border border-slate-700">Cancelar</button>
+                <button onclick="confirmarExclusaoParcialEstoque()" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-xl text-xs font-semibold transition shadow-lg">Confirmar Exclusão</button>
+            `;
+
+            modal.classList.remove('hidden');
+            setTimeout(inicializarIcones, 50);
+        }
+
+        function fecharModalConfirmacaoEstoque() {
+            document.getElementById('modal-confirmacao-estoque').classList.add('hidden');
+        }
+
+        function confirmarExclusaoParcialEstoque() {
+            const qtdParaExcluir = parseInt(document.getElementById('modal-input-qtd-exclusao').value) || 0;
+            const { index, item } = dadosMovimentoPendente;
+
+            if(qtdParaExcluir <= 0) {
+                alert('Informe uma quantidade válida para excluir.');
+                return;
+            }
+
+            if(qtdParaExcluir > item.quantidade) {
+                alert(`A quantidade a excluir não pode ser maior que o estoque atual (${item.quantidade}).`);
+                return;
+            }
+
+            item.quantidade -= qtdParaExcluir;
+            if(item.quantidade <= 0) {
+                estadoApp.estoque.splice(index, 1);
+            }
+
+            fecharModalConfirmacaoEstoque();
+            renderizarEstoque();
+
+            // Mensagem de sucesso
+            const modal = document.getElementById('modal-confirmacao-estoque');
+            const iconeDiv = document.getElementById('modal-conf-icone');
+            const titulo = document.getElementById('modal-conf-titulo');
+            const texto = document.getElementById('modal-conf-texto');
+            const inputContainer = document.getElementById('modal-conf-input-container');
+            const botoes = document.getElementById('modal-conf-botoes');
+
+            inputContainer.classList.add('hidden');
+            iconeDiv.className = 'w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+            iconeDiv.innerHTML = '<i data-lucide="check-circle-2" class="w-7 h-7"></i>';
+            titulo.innerText = 'Exclusão Realizada com Sucesso!';
+            texto.innerText = `Foram removidas ${qtdParaExcluir} unidade(s) do item ${item.sku}.`;
+
+            botoes.innerHTML = `
+                <button onclick="fecharModalConfirmacaoEstoque()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-xs font-semibold transition shadow-lg">OK</button>
+            `;
+
+            modal.classList.remove('hidden');
+            setTimeout(inicializarIcones, 50);
+        }
+
+        function confirmarMovimentacaoEstoqueEfetiva() {
+            const { ean, sku, descricao, quantidade, lote, validade } = dadosMovimentoPendente;
+            const acao = acaoPendenteEstoque;
+
+            let itemExistente = estadoApp.estoque.find(i => i.sku === sku && i.lote === lote);
+
+            if(itemExistente) {
+                itemExistente.quantidade += quantidade;
+            } else {
+                estadoApp.estoque.push({ ean, sku, descricao, lote, validade, quantidade });
+            }
+
+            fecharModalConfirmacaoEstoque();
+
+            // Mensagem de confirmação ao usuário
+            const modal = document.getElementById('modal-confirmacao-estoque');
+            const iconeDiv = document.getElementById('modal-conf-icone');
+            const titulo = document.getElementById('modal-conf-titulo');
+            const texto = document.getElementById('modal-conf-texto');
+            const inputContainer = document.getElementById('modal-conf-input-container');
+            const botoes = document.getElementById('modal-conf-botoes');
+
+            inputContainer.classList.add('hidden');
+            iconeDiv.className = 'w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+            iconeDiv.innerHTML = '<i data-lucide="check-circle-2" class="w-7 h-7"></i>';
+            titulo.innerText = 'Adição Realizada com Sucesso!';
+            texto.innerText = `O estoque de ${sku} foi incrementado em ${quantidade} unidade(s).`;
+
+            botoes.innerHTML = `
+                <button onclick="concluirMensagemSucessoEstoque()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-xs font-semibold transition shadow-lg">OK</button>
+            `;
+
+            modal.classList.remove('hidden');
+            setTimeout(inicializarIcones, 50);
+        }
+
+        function concluirMensagemSucessoEstoque() {
+            document.getElementById('modal-confirmacao-estoque').classList.add('hidden');
+            document.getElementById('est-ean').value = '';
+            document.getElementById('est-sku').value = '';
+            document.getElementById('est-descricao').value = '';
+            document.getElementById('est-qtd').value = '1';
+            document.getElementById('est-lote').value = '';
+            document.getElementById('est-validade').value = '';
+            mudarSubEstoque('consulta');
+        }
+
+        // ================= PARSER MERCADO LIVRE FULL =================
+        async function carregarPDFUniversal(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+
+            document.getElementById('romaneio-filename').innerHTML = `<i data-lucide="file-text" class="w-4 h-4"></i> Arquivo: ${file.name}`;
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                const pdfDocument = await loadingTask.promise;
+                
+                let fullText = '';
+                for (let i = 1; i <= pdfDocument.numPages; i++) {
+                    const page = await pdfDocument.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str.trim()).filter(str => str.length > 0).join(' ');
+                    fullText += pageText + ' ';
+                }
+
+                let extractedItems = [];
+                const cleanText = fullText.replace(/\s+/g, ' ');
+                
+                const productRegex = /Código universal:\s*(\d+)\s*SKU:\s*([A-Za-z0-9\-_]+)\s*(.*?)\s*(?=Etiquetagem|Código ML:|PRODUTO\s+UNIDADES)/gi;
+                let match;
+
+                while ((match = productRegex.exec(cleanText)) !== null) {
+                    let cleanDescription = match[3].trim().replace(/SUPERMERCADO/gi, '').replace(/Código Universal/gi, '').trim();
+                    extractedItems.push({
+                        ean: match[1],
+                        sku: match[2],
+                        descricao: cleanDescription,
+                        unidadeAlvo: 0,
+                        separados: 0
+                    });
+                }
+
+                const tableSplit = cleanText.split(/PRODUTO\s+UNIDADES/i);
+                if (tableSplit.length > 1) {
+                    tableSplit.shift(); 
+                    const tableContent = tableSplit.join(' '); 
+                    const unitRegex = /\b(\d+)\s*•/g;
+                    let unitMatch;
+                    let unitIndex = 0;
+                    
+                    while ((unitMatch = unitRegex.exec(tableContent)) !== null) {
+                        if (extractedItems[unitIndex]) {
+                            extractedItems[unitIndex].unidadeAlvo = parseInt(unitMatch[1], 10);
+                            unitIndex++;
+                        }
+                    }
+                }
+
+                if (extractedItems.length === 0) {
+                    alert("Aviso: Nenhum produto identificado. Certifique-se de que é um romaneio do Mercado Livre Full.");
+                    document.getElementById('pdf-file-input').value = "";
+                    return;
+                }
+
+                estadoApp.romaneioAtual = {
+                    arquivo: file.name,
+                    dataAnexo: new Date().toISOString().replace('T', ' ').substring(0, 16),
+                    colaborador: estadoApp.usuarioLogado.nome,
+                    itens: extractedItems,
+                    palletsRegistrados: []
+                };
+
+                estadoApp.contadorPallet = 1;
+                document.getElementById('pallet-atual-badge').innerText = `Pallet ${estadoApp.contadorPallet}`;
+                
+                mudarSecao('nova-separacao');
+                renderizarTabelaSeparacao();
+                
+            } catch (error) {
+                console.error("Erro ao processar PDF:", error);
+                alert("Erro ao ler o arquivo PDF. Verifique se o arquivo é válido ou está corrompido.");
+            }
+        }
+
+        function renderizarTabelaSeparacao() {
+            const tbody = document.getElementById('tabela-itens-body');
+            tbody.innerHTML = '';
+
+            const itens = estadoApp.romaneioAtual.itens;
+
+            if(itens.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-emerald-400 font-semibold">Nenhum item encontrado no romaneio.</td></tr>`;
+                return;
+            }
+
+            itens.forEach((item) => {
+                let statusClass = 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+                let statusText = 'Pendente';
+
+                if(item.separados > item.unidadeAlvo) {
+                    statusClass = 'text-red-400 bg-red-500/10 border-red-500/20';
+                    statusText = 'Excesso';
+                } else if(item.separados === item.unidadeAlvo) {
+                    statusClass = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+                    statusText = 'Completo';
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/30 transition">
+                        <td class="p-4 font-mono text-xs text-slate-400">${item.ean}</td>
+                        <td class="p-4 font-mono text-xs text-blue-400">${item.sku}</td>
+                        <td class="p-4 text-white font-medium">${item.descricao}</td>
+                        <td class="p-4 font-semibold">${item.unidadeAlvo}</td>
+                        <td class="p-4 font-bold text-white">${item.separados}</td>
+                        <td class="p-4">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold border ${statusClass}">${statusText}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+            setTimeout(inicializarIcones, 50);
+        }
+
+        function tratarInputKey(event) {
+            const modo = document.getElementById('select-modo').value;
+            if(event.key === 'Enter' && modo === 'automatico') {
+                executarAcaoSeparacao('adicionar');
+            }
+        }
+
+        function executarAcaoSeparacao(acao) {
+            const inputVal = document.getElementById('input-ean-sku').value.trim();
+            const multiplo = parseInt(document.getElementById('input-multiplo').value) || 1;
+
+            if(!inputVal) {
+                alert('Digite ou bipe um EAN ou SKU válido.');
+                return;
+            }
+
+            const item = estadoApp.romaneioAtual.itens.find(i => i.ean === inputVal || i.sku === inputVal);
+
+            if(!item) {
+                alert('EAN ou SKU inexistente neste romaneio!');
+                return;
+            }
+
+            if(acao === 'adicionar') {
+                item.separados += multiplo;
+            } else if(acao === 'remover') {
+                item.separados = Math.max(0, item.separados - multiplo);
+            }
+
+            document.getElementById('input-ean-sku').value = '';
+            renderizarTabelaSeparacao();
+        }
+
+        function irParaImpressao() {
+            if(!estadoApp.romaneioAtual) return;
+
+            document.getElementById('impressao-pallet-titulo').innerText = `Pallet ${estadoApp.contadorPallet}`;
+            const tbody = document.getElementById('tabela-impressao-body');
+            tbody.innerHTML = '';
+
+            let itensComSeparacao = estadoApp.romaneioAtual.itens.filter(i => i.separados > 0);
+            
+            if(itensComSeparacao.length === 0) {
+                alert('Nenhum item foi separado ainda para compor o pallet.');
+                return;
+            }
+
+            itensComSeparacao.forEach(item => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/30 transition">
+                        <td class="py-3 font-mono text-xs text-slate-400">${item.ean}</td>
+                        <td class="py-3 font-mono text-xs text-blue-400">${item.sku}</td>
+                        <td class="py-3 text-white">${item.descricao}</td>
+                        <td class="py-3 font-bold text-indigo-400">${item.separados}</td>
+                    </tr>
+                `;
+            });
+
+            mudarSecao('impressao');
+        }
+
+        function voltarParaSeparacao() {
+            mudarSecao('nova-separacao');
+        }
+
+        function fecharPalletNovo() {
+            let itensDoPallet = estadoApp.romaneioAtual.itens.filter(i => i.separados > 0).map(i => ({...i}));
+            
+            if(itensDoPallet.length > 0) {
+                estadoApp.romaneioAtual.palletsRegistrados.push({
+                    numeroPallet: estadoApp.contadorPallet,
+                    itens: itensDoPallet
+                });
+            }
+
+            estadoApp.romaneioAtual.itens = estadoApp.romaneioAtual.itens.map(item => {
+                let jaSeparadoTotal = 0;
+                estadoApp.romaneioAtual.palletsRegistrados.forEach(p => {
+                    let it = p.itens.find(x => x.sku === item.sku);
+                    if(it) jaSeparadoTotal += it.separados;
+                });
+
+                return {
+                    ...item,
+                    separados: 0
+                };
+            }).filter(item => {
+                let qtdTotalSeparada = 0;
+                estadoApp.romaneioAtual.palletsRegistrados.forEach(p => {
+                    let encontrado = p.itens.find(pi => pi.sku === item.sku);
+                    if(encontrado) qtdTotalSeparada += encontrado.separados;
+                });
+                return qtdTotalSeparada < item.unidadeAlvo || qtdTotalSeparada > item.unidadeAlvo;
+            });
+
+            estadoApp.contadorPallet++;
+            document.getElementById('pallet-atual-badge').innerText = `Pallet ${estadoApp.contadorPallet}`;
+            renderizarTabelaSeparacao();
+            mudarSecao('nova-separacao');
+            alert(`Novo Pallet iniciado (${document.getElementById('pallet-atual-badge').innerText}). Itens completos foram filtrados.`);
+        }
+
+        function finalizarRomaneio() {
+            let itensPendentesPallet = estadoApp.romaneioAtual.itens.filter(i => i.separados > 0).map(i => ({...i}));
+            if(itensPendentesPallet.length > 0) {
+                estadoApp.romaneioAtual.palletsRegistrados.push({
+                    numeroPallet: estadoApp.contadorPallet,
+                    itens: itensPendentesPallet
+                });
+            }
+
+            let temExcedente = false;
+            let temIncompleto = false;
+
+            estadoApp.romaneioAtual.itens.forEach(i => {
+                let totalSeparadoItem = 0;
+                estadoApp.romaneioAtual.palletsRegistrados.forEach(p => {
+                    let encontrado = p.itens.find(pi => pi.sku === i.sku);
+                    if(encontrado) totalSeparadoItem += encontrado.separados;
+                });
+
+                if(totalSeparadoItem > i.unidadeAlvo) temExcedente = true;
+                else if(totalSeparadoItem < i.unidadeAlvo) temIncompleto = true;
+            });
+
+            let tipoRomaneio = 'completo';
+            if(temExcedente) tipoRomaneio = 'excedente';
+            else if(temIncompleto) tipoRomaneio = 'incompleto';
+
+            estadoApp.romaneioAtual.dataFinalizacao = new Date().toISOString().replace('T', ' ').substring(0, 16);
+            estadoApp.romaneioAtual.tipoRomaneio = tipoRomaneio;
+            estadoApp.historicoRomaneios.push({...estadoApp.romaneioAtual, id: Date.now()});
+
+            alert(`Separação finalizada com status: ${tipoRomaneio.toUpperCase()}! Dados computados no Dashboard.`);
+
+            estadoApp.romaneioAtual = null;
+            document.getElementById('pdf-file-input').value = "";
+            mudarSecao('dashboard');
+        }
+
+        function imprimirPalletIndividual() {
+            window.print();
+        }
+
+        function imprimirTodosPallets() {
+            if(!estadoApp.romaneioAtual) return;
+            const tbody = document.getElementById('tabela-impressao-body');
+            tbody.innerHTML = '';
+
+            let mapaGeral = {};
+            estadoApp.romaneioAtual.palletsRegistrados.forEach(p => {
+                p.itens.forEach(i => {
+                    if(!mapaGeral[i.sku]) mapaGeral[i.sku] = { ean: i.ean, sku: i.sku, descricao: i.descricao, separados: 0 };
+                    mapaGeral[i.sku].separados += i.separados;
+                });
+            });
+            estadoApp.romaneioAtual.itens.forEach(i => {
+                if(i.separados > 0) {
+                    if(!mapaGeral[i.sku]) mapaGeral[i.sku] = { ean: i.ean, sku: i.sku, descricao: i.descricao, separados: 0 };
+                    mapaGeral[i.sku].separados += i.separados;
+                }
+            });
+
+            Object.values(mapaGeral).forEach(item => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/30 transition">
+                        <td class="py-3 font-mono text-xs text-slate-400">${item.ean}</td>
+                        <td class="py-3 font-mono text-xs text-blue-400">${item.sku}</td>
+                        <td class="py-3 text-white">${item.descricao}</td>
+                        <td class="py-3 font-bold text-indigo-400">${item.separados}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('impressao-pallet-titulo').innerText = `Consolidado - Todos os Pallets`;
+            window.print();
+        }
+
+        function renderizarHistorico() {
+            const tbody = document.getElementById('tabela-historico-body');
+            tbody.innerHTML = '';
+
+            const hist = estadoApp.usuarioLogado.perfil === 'administrador'
+                ? estadoApp.historicoRomaneios
+                : estadoApp.historicoRomaneios.filter(h => h.colaborador === estadoApp.usuarioLogado.nome);
+
+            if(hist.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhum romaneio registrado no histórico.</td></tr>`;
+                return;
+            }
+
+            hist.forEach(h => {
+                let volumeTotal = 0;
+                h.palletsRegistrados.forEach(p => {
+                    p.itens.forEach(pi => volumeTotal += pi.separados);
+                });
+
+                let statusClass = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+                let statusText = 'Completo';
+
+                if(h.tipoRomaneio === 'excedente') {
+                    statusClass = 'text-red-400 bg-red-500/10 border-red-500/20';
+                    statusText = 'Excedente';
+                } else if(h.tipoRomaneio === 'incompleto') {
+                    statusClass = 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+                    statusText = 'Pendente';
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/30 transition">
+                        <td class="p-4 font-medium text-white">${h.arquivo}</td>
+                        <td class="p-4 text-slate-300">${h.colaborador}</td>
+                        <td class="p-4 text-slate-400 text-xs">${h.dataFinalizacao || h.dataAnexo}</td>
+                        <td class="p-4 text-blue-400 font-semibold">${volumeTotal}</td>
+                        <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold border ${statusClass}">${statusText}</span></td>
+                        <td class="p-4 text-right space-x-2">
+                            <button onclick="visualizarRomaneio(${h.id})" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition border border-slate-700">Visualizar</button>
+                            <button onclick="retomarRomaneio(${h.id})" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition shadow-lg shadow-blue-600/20">Retomar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            setTimeout(inicializarIcones, 50);
+        }
+
+        function visualizarRomaneio(id) {
+            const rom = estadoApp.historicoRomaneios.find(h => h.id === id);
+            if(!rom) return;
+
+            palletVisualizandoAtualId = id;
+            document.getElementById('vis-pallets-titulo').innerText = `Romaneio: ${rom.arquivo}`;
+            const containerBotoes = document.getElementById('lista-botoes-pallets-vis');
+            containerBotoes.innerHTML = '';
+
+            if(!rom.palletsRegistrados || rom.palletsRegistrados.length === 0) {
+                containerBotoes.innerHTML = `<p class="text-xs text-slate-500">Nenhum pallet registrado neste romaneio.</p>`;
+                document.getElementById('vis-pallet-subtitulo').innerText = 'Nenhum pallet disponível.';
+                document.getElementById('tabela-vis-pallet-body').innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-500">Nenhum dado encontrado.</td></tr>`;
+                mudarSecao('visualizar-pallets');
+                return;
+            }
+
+            rom.palletsRegistrados.forEach((pallet, index) => {
+                const ativoClass = index === 0 ? 'border-blue-500 bg-blue-500/10 text-white' : 'border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-700';
+                containerBotoes.innerHTML += `
+                    <button onclick="selecionarPalletVisualizacao(${id}, ${pallet.numeroPallet}, this)" class="btn-pallet-vis w-full flex items-center justify-between p-4 rounded-xl border transition text-sm font-semibold ${ativoClass}">
+                        <span>Pallet ${pallet.numeroPallet}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">${pallet.itens.reduce((acc, i) => acc + i.separados, 0)} itens</span>
+                    </button>
+                `;
+            });
+
+            selecionarPalletVisualizacao(id, rom.palletsRegistrados[0].numeroPallet);
+            mudarSecao('visualizar-pallets');
+        }
+
+        function selecionarPalletVisualizacao(romId, numPallet, btnElement = null) {
+            const rom = estadoApp.historicoRomaneios.find(h => h.id === romId);
+            if(!rom) return;
+
+            palletVisualizandoAtualNum = numPallet;
+            const pallet = rom.palletsRegistrados.find(p => p.numeroPallet === numPallet);
+            if(!pallet) return;
+
+            if(btnElement) {
+                document.querySelectorAll('.btn-pallet-vis').forEach(b => {
+                    b.classList.remove('border-blue-500', 'bg-blue-500/10', 'text-white');
+                    b.classList.add('border-slate-800', 'bg-slate-900/60', 'text-slate-300');
+                });
+                btnElement.classList.remove('border-slate-800', 'bg-slate-900/60', 'text-slate-300');
+                btnElement.classList.add('border-blue-500', 'bg-blue-500/10', 'text-white');
+            }
+
+            document.getElementById('vis-pallet-subtitulo').innerText = `Produtos do Pallet ${pallet.numeroPallet}`;
+            const tbody = document.getElementById('tabela-vis-pallet-body');
+            tbody.innerHTML = '';
+
+            pallet.itens.forEach(i => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/30 transition">
+                        <td class="py-3 font-mono text-xs text-slate-400">${i.ean}</td>
+                        <td class="py-3 font-mono text-xs text-blue-400">${i.sku}</td>
+                        <td class="py-3 text-white font-medium">${i.descricao}</td>
+                        <td class="py-3 text-right font-bold text-indigo-400">${i.separados}</td>
+                    </tr>
+                `;
+            });
+            setTimeout(inicializarIcones, 50);
+        }
+
+        function imprimirPalletVisualizacaoIndividual() {
+            window.print();
+        }
+
+        function imprimirTodosPalletsVisualizacao() {
+            const rom = estadoApp.historicoRomaneios.find(h => h.id === palletVisualizandoAtualId);
+            if(!rom) return;
+
+            const tbody = document.getElementById('tabela-vis-pallet-body');
+            tbody.innerHTML = '';
+
+            let mapaGeral = {};
+            rom.palletsRegistrados.forEach(p => {
+                p.itens.forEach(i => {
+                    if(!mapaGeral[i.sku]) mapaGeral[i.sku] = { ean: i.ean, sku: i.sku, descricao: i.descricao, separados: 0 };
+                    mapaGeral[i.sku].separados += i.separados;
+                });
+            });
+
+            Object.values(mapaGeral).forEach(item => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/30 transition">
+                        <td class="py-3 font-mono text-xs text-slate-400">${item.ean}</td>
+                        <td class="py-3 font-mono text-xs text-blue-400">${item.sku}</td>
+                        <td class="py-3 text-white">${item.descricao}</td>
+                        <td class="py-3 text-right font-bold text-indigo-400">${item.separados}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('vis-pallet-subtitulo').innerText = `Consolidado - Todos os Pallets (${rom.arquivo})`;
+            window.print();
+            visualizarRomaneio(rom.id);
+        }
+
+        function retomarRomaneio(id) {
+            const rom = estadoApp.historicoRomaneios.find(h => h.id === id);
+            if(!rom) return;
+
+            estadoApp.romaneioAtual = rom;
+            
+            const container = document.getElementById('lista-pallets-retomada');
+            container.innerHTML = '';
+
+            if(!rom.palletsRegistrados || rom.palletsRegistrados.length === 0) {
+                container.innerHTML = `<p class="text-slate-400 col-span-full">Nenhum pallet registrado neste romaneio. Redirecionando para workspace...</p>`;
+                setTimeout(() => mudarSecao('nova-separacao'), 1000);
+                return;
+            }
+
+            rom.palletsRegistrados.forEach(pallet => {
+                let resumoItens = pallet.itens.map(i => `${i.separados}x ${i.descricao}`).join('<br>');
+                container.innerHTML += `
+                    <div class="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-5 rounded-2xl shadow-xl flex flex-col justify-between space-y-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-white mb-2">Pallet ${pallet.numeroPallet}</h3>
+                            <div class="text-xs text-slate-400 space-y-1 max-h-32 overflow-y-auto pr-1">
+                                ${resumoItens}
+                            </div>
+                        </div>
+                        <button onclick="selecionarPalletRetomada(${pallet.numeroPallet})" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-2.5 rounded-xl font-semibold text-xs transition shadow-lg shadow-blue-600/20">
+                            Continuar neste Pallet
+                        </button>
+                    </div>
+                `;
+            });
+
+            mudarSecao('retomar-pallet');
+        }
+
+        function selecionarPalletRetomada(numPallet) {
+            estadoApp.contadorPallet = numPallet;
+            document.getElementById('pallet-atual-badge').innerText = `Pallet ${numPallet}`;
+            renderizarTabelaSeparacao();
+            mudarSecao('nova-separacao');
+        }
+    </script>
+</body>
+</html>
