@@ -129,7 +129,8 @@
         const SUPABASE_URL = 'https://asrjgralrkxhulyoqzdh.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_ZQHPjHaFlqFck_IM3Ayukw_8qMcgkwA';
         
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Correção do conflito de escopo com o objeto global window.supabase
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let isLogin = true;
         
@@ -150,14 +151,14 @@
             const password = document.getElementById('password').value;
 
             if (isLogin) {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) alert('Erro no login: ' + error.message);
                 else verificarSessao();
             } else {
                 const nome = document.getElementById('user-name').value;
                 const cargo = document.getElementById('user-role').value;
                 
-                const { data, error } = await supabase.auth.signUp({ 
+                const { data, error } = await supabaseClient.auth.signUp({ 
                     email, 
                     password 
                 });
@@ -168,9 +169,11 @@
                 }
 
                 if (data.user) {
-                    await supabase.from('perfis').insert([
+                    const { error: perfilError } = await supabaseClient.from('perfis').insert([
                         { id: data.user.id, nome: nome, cargo: cargo }
                     ]);
+                    if (perfilError) console.error('Erro ao salvar perfil:', perfilError.message);
+                    
                     alert('Cadastro realizado! Por favor, faça login.');
                     document.getElementById('toggle-auth').click();
                 }
@@ -178,13 +181,14 @@
         });
 
         async function verificarSessao() {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             
             if (session) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
                 document.getElementById('user-info').innerText = session.user.email;
                 carregarEstoque();
+                carregarRomaneios();
             } else {
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('app-screen').classList.add('hidden');
@@ -192,29 +196,35 @@
         }
 
         async function fazerLogout() {
-            await supabase.auth.signOut();
+            await supabaseClient.auth.signOut();
             verificarSessao();
         }
 
         function mostrarAba(abaId) {
             document.querySelectorAll('.aba-conteudo').forEach(el => el.classList.add('hidden'));
             document.getElementById('aba-' + abaId).classList.remove('hidden');
+            
+            if (abaId === 'estoque') {
+                carregarEstoque();
+            } else if (abaId === 'romaneios') {
+                carregarRomaneios();
+            }
         }
 
         async function carregarEstoque() {
             const tbody = document.getElementById('tabela-estoque');
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center">Carregando...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Carregando...</td></tr>';
             
-            const { data: estoque, error } = await supabase.from('estoque').select('*');
+            const { data: estoque, error } = await supabaseClient.from('estoque').select('*');
             
             if (error) {
                 console.error(error);
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-red-500">Erro ao carregar dados.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-red-500 py-4">Erro ao carregar dados.</td></tr>';
                 return;
             }
 
-            if (estoque.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center">Estoque vazio.</td></tr>';
+            if (!estoque || estoque.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">Estoque vazio.</td></tr>';
                 return;
             }
 
@@ -231,19 +241,56 @@
             });
         }
 
+        async function carregarRomaneios() {
+            const lista = document.getElementById('lista-romaneios');
+            lista.innerHTML = '<li class="text-gray-500 italic">Carregando romaneios...</li>';
+
+            const { data: romaneios, error } = await supabaseClient.from('romaneios').select('*').order('data_criacao', { ascending: false });
+
+            if (error) {
+                console.error(error);
+                lista.innerHTML = '<li class="text-red-500 italic">Erro ao carregar romaneios.</li>';
+                return;
+            }
+
+            if (!romaneios || romaneios.length === 0) {
+                lista.innerHTML = '<li class="text-gray-500 italic">Nenhum romaneio cadastrado.</li>';
+                return;
+            }
+
+            lista.innerHTML = '';
+            romaneios.forEach(r => {
+                lista.innerHTML += `
+                    <li class="p-3 bg-gray-50 rounded border flex justify-between items-center">
+                        <div>
+                            <span class="font-bold text-blue-600">${r.numero_documento}</span> 
+                            <span class="text-xs bg-gray-200 px-2 py-0.5 rounded ml-2">${r.tipo}</span>
+                            ${r.placa ? `<span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded ml-2">Placa: ${r.placa}</span>` : ''}
+                        </div>
+                        <span class="text-xs text-gray-500">${r.status || 'AGUARDANDO'}</span>
+                    </li>
+                `;
+            });
+        }
+
         document.getElementById('form-romaneio').addEventListener('submit', async (e) => {
             e.preventDefault();
             const numDoc = document.getElementById('num-doc').value;
             const tipo = document.getElementById('tipo-romaneio').value;
-            const placa = document.getElementById('placa-veiculo').value; 
+            const placa = document.getElementById('placa-veiculo').value.toUpperCase(); 
 
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) {
+                alert('Erro: Usuário não autenticado.');
+                return;
+            }
 
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('romaneios')
                 .insert([{ 
                     numero_documento: numDoc, 
                     tipo: tipo,
+                    placa: placa,
                     responsavel_id: user.id
                 }]);
 
@@ -252,6 +299,7 @@
             } else {
                 alert('Romaneio salvo com sucesso!');
                 document.getElementById('form-romaneio').reset();
+                carregarRomaneios();
             }
         });
 
